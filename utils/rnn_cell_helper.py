@@ -2,6 +2,7 @@ import tensorflow as tf
 
 class RNN_cell(object):
     #@classmethod#工厂模式
+    @classmethod
     def make_cell(cls, cell_type, layer_norm):
         if layer_norm == False:
             if cell_type == 'gru':
