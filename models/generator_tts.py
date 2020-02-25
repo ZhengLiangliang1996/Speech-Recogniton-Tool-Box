@@ -95,11 +95,9 @@ def gblock(inputs, z, hidden_channel, upsample_factor, gblock_name = '1'):
     outputs = conv1d(outputs, hidden_channel, kernel_size = 3, dilation = 8, name='conv1d4', gn = gblock_name)
 
     outputs = outputs + residual_outputs
-
     return outputs
 
 def generator(x, z):
-    # 这里inputs 的in_channel 是567
     input_pre = conv1d(inputs = x, filters = 768, kernel_size = 3, stride = 1, dilation = 1, activation = 'relu', name="conv1d")
     g1 = gblock(input_pre, z, 768, 1, gblock_name = '1')
     g2 = gblock(g1, z, 768, 1, gblock_name = '2')
@@ -117,16 +115,18 @@ def generator(x, z):
 #(567, 128)
 # print(output)
 
-g = tf.Graph()
-with g.as_default():
-    # data shape is "[batch, in_height, in_width, in_channels]",
+# g = tf.Graph()
+# with g.as_default():
+#     # data shape is "[batch, in_height, in_width, in_channels]",
     
-    x = tf.Variable(tf.random.normal([2, 1, 36000], stddev=0.35),name="weights")
-    z = tf.Variable(tf.random.normal([2, 128], stddev=0.35),name="weights")
-    # filter shape is "[filter_height, filter_width, in_channels, out_channels]"
-    # filters = tf.Variable(, name="phi")
-    outputs = generator(x, z)
-    print(outputs)
+#     x = tf.Variable(tf.random.normal([80, 1, 1293], stddev=0.35),name="weights")
+#     # tf.print(tf.shape(x))
+#     z = tf.Variable(tf.random.normal([80, 128], stddev=0.35),name="weights")
+#     # tf.print(tf.shape(z))
+#     # filter shape is "[filter_height, filter_width, in_channels, out_channels]"
+#     # filters = tf.Variable(, name="phi")
+#     outputs = generator(x, z)
+#     print(outputs)
     
     
 
