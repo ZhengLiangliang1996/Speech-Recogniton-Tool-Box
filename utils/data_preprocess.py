@@ -9,77 +9,72 @@ dataset used in this thesis: LibriSpeech
 Inspired from: https://github.com/zzw922cn/Automatic_Speech_Recognition
 """
 
+
 import os
-import glob
-import sklearn
 import argparse
+import glob
+import sys
+sys.path.append('/home/liangliang/Desktop/VUB_ThirdSemester/MasterThesis/SpeechRecognitiontoolbox')
+
+import sklearn
 import numpy as np
 import scipy.io.wavfile as wav
 from sklearn import preprocessing
-from subprocess import check_call, CalledProcessError
-from MFCC_generate import calcfeat_delta_delta
+from python_speech_features import mfcc
+from python_speech_features import delta
+
+
+## original phonemes
+phn = ['aa', 'ae', 'ah', 'ao', 'aw', 'ax', 'ax-h', 'axr', 'ay', 'b', 'bcl', 'ch', 'd', 'dcl', 'dh', 'dx', 'eh', 'el', 'em', 'en', 'eng', 'epi', 'er', 'ey', 'f', 'g', 'gcl', 'h#', 'hh', 'hv', 'ih', 'ix', 'iy', 'jh', 'k', 'kcl', 'l', 'm', 'n', 'ng', 'nx', 'ow', 'oy', 'p', 'pau', 'pcl', 'q', 'r', 's', 'sh', 't', 'tcl', 'th', 'uh', 'uw', 'ux', 'v', 'w', 'y', 'z', 'zh']
+
+## cleaned phonemes
+#phn = ['sil', 'aa', 'ae', 'ah', 'ao', 'aw', 'ax', 'ax-h', 'ay', 'b', 'ch', 'd', 'dh', 'dx', 'eh', 'el', 'en', 'epi', 'er', 'ey', 'f', 'g', 'hh', 'ih', 'ix', 'iy', 'jh', 'k', 'l', 'm', 'n', 'ng', 'ow', 'oy', 'p', 'q', 'r', 's', 'sh', 't', 'th', 'uh', 'uw', 'v', 'w', 'y', 'z', 'zh']
 
 def preprocess(root_directory):
     """
-    Function to walk through the directory and convert flac to wav files
+    Function to convert the stimuli3 file to .label file
     """
-    try:
-        check_call(['flac'])
-    except OSError:
-        raise OSError("""Flac not installed. Install using apt-get install flac""")
     for subdir, dirs, files in os.walk(root_directory):
         for f in files:
-            filename = os.path.join(subdir, f)
-            if f.endswith('.flac'):
-                try:
-                    check_call(['flac', '-d', filename])
-                    os.remove(filename)
-                except CalledProcessError as e:
-                    print("Failed to convert file {}".format(filename))
-            elif f.endswith('.TXT'):
-                os.remove(filename)
-            elif f.endswith('.txt'):
-                with open(filename, 'r') as fp:
-                    lines = fp.readlines()
-                    for line in lines:
-                        sub_n = line.split(' ')[0] + '.label'
-                        subfile = os.path.join(subdir, sub_n)
-                        sub_c = ' '.join(line.split(' ')[1:])
-                        sub_c = sub_c.lower()
-                        with open(subfile, 'w') as sp:
-                            sp.write(sub_c)
-            elif f.endswith('.wav'):
-                if not os.path.isfile(os.path.splitext(filename)[0] +
-                                      '.label'):
-                    raise ValueError(".label file not found for {}".format(filename))
-            else:
-                pass
+            # filename = os.path.join(subdir, f)
+            if f.endswith(".wav"):
+                label = f[:-6]
+                subfile = os.path.join(root_directory, f[:-4]+".label")
+                with open(subfile, 'w+') as sp:
+                    sp.write(label)
 
 def wav2feature(root_directory, save_directory, name, win_len, win_step, mode, feature_len, seq2seq, save):
+    print(111)
+
     count = 0
     dirid = 0
     level = 'cha' if seq2seq is False else 'seq2seq'
     data_dir = os.path.join(root_directory, name)
     preprocess(data_dir)
+    print(data_dir)
+    print(222)
+
     for subdir, dirs, files in os.walk(data_dir):
         for f in files:
             fullFilename = os.path.join(subdir, f)
             filenameNoSuffix =  os.path.splitext(fullFilename)[0]
             if f.endswith('.wav'):
                 rate = None
-                sig = None
-                try:
-                    (rate,sig)= wav.read(fullFilename)
-                except ValueError as e:
-                    if e.message == "File format 'NIST'... not understood.":
-                        sf = Sndfile(fullFilename, 'r')
-                    nframes = sf.nframes
-                    sig = sf.read_frames(nframes)
-                    rate = sf.samplerate
-                feat = calcfeat_delta_delta(sig,rate,win_length=win_len,win_step=win_step,mode=mode,feature_len=feature_len)
+                sig = None    
+                
+                (rate,sig)= wav.read(fullFilename)
+                print(rate)
+                # Get MFCC feature
+                mfcc_feat = mfcc(sig, rate, nfft=1103)
+                delta_mfcc_feat = delta(mfcc_feat, 2)
+                delta_delta = delta(delta_mfcc_feat, 2)
+                #In each frame, coefficients are concatenated in (mfcc_feat,delta_mfcc_feat,delta_delta)
+                feat = np.concatenate((mfcc_feat,delta_mfcc_feat,delta_delta),axis=1)
+                # Normalize
                 feat = preprocessing.scale(feat)
                 feat = np.transpose(feat)
                 print(feat.shape)
+
                 labelFilename = filenameNoSuffix + '.label'
                 with open(labelFilename,'r') as f:
                     characters = f.readline().strip().lower()
@@ -114,16 +109,25 @@ def wav2feature(root_directory, save_directory, name, win_len, win_step, mode, f
                     print(t_f)
                     np.save(t_f,targets)
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog='data preprocess',
-                                     description='Script to preprocess libri data')
-    parser.add_argument("path", help="stimuli3 dataset", type=str, default="/home/liangliang/Desktop/VUB_ThirdSemester/MasterThesis/SpeechRecognitiontoolbox/dataset/stimuli3/")
 
-    parser.add_argument("save", help="Directory where preprocessed arrays are to be saved",
-                        type=str, default="/home/liangliang/Desktop/VUB_ThirdSemester/MasterThesis/SpeechRecognitiontoolbox/samples/")
+if __name__ == '__main__':
+    # character or phoneme
+    parser = argparse.ArgumentParser(prog='data preprocess',
+                                     description='Script to preprocess stimuli3 data')
+
+    parser.add_argument("-path", help="stimuli3 dataset", 
+                        type=str, default="/home/liangliang/Desktop/VUB_ThirdSemester/MasterThesis/SpeechRecognitiontoolbox/dataset")
+
+    parser.add_argument("-save", help="Directory where preprocessed arrays are to be saved",
+                        type=str, default="/home/liangliang/Desktop/VUB_ThirdSemester/MasterThesis/SpeechRecognitiontoolbox/samples")
     parser.add_argument("-n", "--name", help="Name of the dataset", type=str, default='stimuli3')
 
-    parser.add_argument("-m", "--mode", help="Mode", type=str, default='mfcc')
+    parser.add_argument("-l", "--level", help="Level",
+                        choices=['cha', 'phn'],
+                        type=str, default='cha')
+    parser.add_argument("-m", "--mode", help="Mode",
+                        choices=['mfcc', 'fbank'],
+                        type=str, default='mfcc')
     parser.add_argument("--featlen", help='Features length', type=int, default=13)
     parser.add_argument("-s", "--seq2seq", default=False,
                         help="set this flag to use seq2seq", action="store_true")
@@ -134,27 +138,26 @@ if __name__ == "__main__":
     parser.add_argument("-ws", "--winstep", type=float,
                         default=0.01, help="specify the window step length of feature")
 
+if __name__ == "__main__":
+    
     args = parser.parse_args()
     root_directory = args.path
     save_directory = args.save
+    level = args.level
     mode = args.mode
     feature_len = args.featlen
-    seq2seq = args.seq2seq
     name = args.name
+    seq2seq = args.seq2seq
     win_len = args.winlen
     win_step = args.winstep
-
-    if root_directory == '.':
+    
+    if root_directory == ".":
         root_directory = os.getcwd()
-
-    if save_directory == '.':
+    if save_directory == ".":
         save_directory = os.getcwd()
-
     if not os.path.isdir(root_directory):
-        raise ValueError("stimuli3 data directory does not exist!")
-
-    if not os.path.isdir(save_directory):
+        raise ValueError("Root directory does not exist!")
+    if not os.path.exists(save_directory):
         os.makedirs(save_directory)
-
     wav2feature(root_directory, save_directory, name=name, win_len=win_len, win_step=win_step,
                 mode=mode, feature_len=feature_len, seq2seq=seq2seq, save=True)
