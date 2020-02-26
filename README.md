@@ -9,11 +9,18 @@ This is a tensorflow implementation tool box for automatic speech recognition, s
 
 ### Prerequisites
 
-What things you need to install the software and how to install them
+First you need to install feature extraction packages for MFCC or fBank. 
+
+Install python speech features from pypi
 
 ```
-Give examples
+pip install python_speech_features
 ```
+
+or install it from repository
+
+git clone https://github.com/jameslyons/python_speech_features
+python setup.py develop
 
 ### Installing
 
@@ -32,6 +39,12 @@ until finished
 ```
 
 End with an example of getting some data out of the system or using it for a little demo
+
+## Implementation Details and NN Architecture
+1. Bi-RNN
+2. Bi-LSTM
+3. CNN
+4. GAN
 
 ## Running the tests
 
