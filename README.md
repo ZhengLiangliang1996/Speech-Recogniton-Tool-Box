@@ -19,8 +19,10 @@ pip install python_speech_features
 
 or install it from repository
 
+```
 git clone https://github.com/jameslyons/python_speech_features
 python setup.py develop
+```
 
 ### Installing
 
