@@ -14,10 +14,10 @@ def data_specification(mode, dir, file_suffix):
         train_data = []
         train_label= []
 
-        for fname in glob.glob(os.path.join(dir, 'train', '*.'+file_suffix)):
+        for fname in glob.glob(os.path.join(dir, 'feature', '*.'+file_suffix)):
             train_data.append(np.load(fname))
 
-        for fname in glob.glob(os.path.join(dir, 'train_label', '*.'+file_suffix)):
+        for fname in glob.glob(os.path.join(dir, 'label', '*.'+file_suffix)):
             train_label.append(np.load(fname))
         
         return train_data, train_label
