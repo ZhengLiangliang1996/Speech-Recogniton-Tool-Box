@@ -205,8 +205,8 @@ class SessionRun(object):
                         print('Model has been saved in {}'.format(savedir))
                     epochER = errRate_list.sum() / totalN
                     print('Epoch', epoch + 1, 'mean train error rate:', epochER)
-                    #logging_helper(model, logfile, epochER, epoch, diff_time, mode='config')
-                    #logging_helper(model, logfile, epochER, epoch, diff_time, mode=args.mode)
+                    logging_helper(model, logfile, epochER, epoch, diff_time, mode='config')
+                    logging_helper(model, logfile, epochER, epoch, diff_time, mode=args.mode)
 
                 if args.mode == 'test' or args.mode == 'dev':
                     with open(os.path.join(resultdir, args.level + '_result.txt'), 'a') as result:

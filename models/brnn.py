@@ -88,6 +88,15 @@ class brnn(object):
     def graph_run(self, args, max_seq_length):
         self.graph = tf.Graph()
         with self.graph.as_default():
+            self.config = {'rnn_cell_type': args.rnn_celltype,
+                           'num_layer': args.num_layers,
+                           'num_hidden': args.hidden_size,
+                           'num_class': args.num_classes,
+                           'activation': args.activation,
+                           'optimizer': args.optimizer,
+                           'keep prob': args.keep_prob,
+                           'batch size': args.batch_size, 
+                           'epoch': args.epochs}
             self.X = tf.placeholder(tf.float32, shape = (max_seq_length, args.batch_size, args.num_features))
             
             #for Sparse Tensor

@@ -10,13 +10,13 @@ import time
 
 
 def logging_helper(model, logfile,loss, epochs = 0,delta_time = 0, mode='train'):
-    if mode != 'train' or mode != 'test' or mode != 'dev' or mode != 'config':
-        raise TypeError("The mode type must be train, test or dev")
+    if mode != 'train' and mode != 'test' and mode != 'config' and mode != 'dev':
+        raise TypeError('mode should be train or test or config.')
     
     if mode == 'config':
         with open(logfile, "a") as savefile:
-            savefile.write(str(model.config)+'\n')
-    if mode == 'train':
+            savefile.write(model.config+'\n')
+    elif mode == 'train':
         with open(logfile, "a") as savefile:
             savefile.write(str(time.strftime("%X %x %Z"))+'\n')
             savefile.write("Epoch:" +str(epochs + 1)+ "training error is "+ str(loss)+'\n')
@@ -27,3 +27,6 @@ def logging_helper(model, logfile,loss, epochs = 0,delta_time = 0, mode='train')
             savefile.write(str(model.config)+'\n')
             savefile.write(str(time.strftime("%X %x %Z"))+'\n')
             savefile.write("testing erro is :"+str(loss)+'\n')
+
+
+
