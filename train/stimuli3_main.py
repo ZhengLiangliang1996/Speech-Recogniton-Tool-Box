@@ -8,15 +8,17 @@ file: stimuli3_main.py
 import argparse
 import sys
 import time
+import datetime
 import os 
 
-sys.path.append('/home/liangliang/Desktop/VUB_ThirdSemester/MasterThesis/SpeechRecognitiontoolbox')
+sys.path.append('..')
 
 import numpy as np
 import tensorflow as tf
 from models.brnn import brnn
 from utils.data_helper import data_specification, create_batch
 from utils.cha_level_helper import output_sequence
+from utils.logging_helper import logging_helper
 
 parser = argparse.ArgumentParser()
 
@@ -47,17 +49,43 @@ parser.add_argument('--num_features', type=int, default=39, help='Number of inpu
 parser.add_argument('--num_classes', type=int, default=30, help='Number of output classes')
 
 # dir
-dir_all = '/home/liangliang/Desktop/VUB_ThirdSemester/MasterThesis/SpeechRecognitiontoolbox/samples/cha/stimuli3/0'
+dir_all = '../samples/cha/stimuli3/0'
 parser.add_argument('--data_dir', type=str, default=dir_all, help='Data directory')
-parser.add_argument('--tensorboard_log_dir', type=str, default= './TENSORBOARD_LOG', help='TENSORBOARD_LOG directory')
-parser.add_argument('--checkpoint_dir', type=str, default= './CHECKPOINT')
+parser.add_argument('--tensorboard_log_dir', type=str, default= '../TENSORBOARD_LOG', help='TENSORBOARD_LOG directory')
+parser.add_argument('--checkpoint_dir', type=str, default= '../CHECKPOINT')
+
+# Feature level
+parser.add_argument('--level', type=str, default='char', help='the feature level, could be cha, phn or seq2seq')
 
 # get paser Argument
 args = parser.parse_args()
 
+logdir = args.checkpoint_dir
+
+savedir = os.path.join(logdir, args.level, 'save')
+resultdir = os.path.join(logdir, args.level, 'result')
+loggingdir = os.path.join(logdir, args.level, 'logging')
+
+if not os.path.exists(savedir):
+    os.makedirs(savedir)
+
+if not os.path.exists(resultdir):
+    os.makedirs(resultdir)
+
+if not os.path.exists(loggingdir):
+    os.makedirs(loggingdir)
+
+if args.mode == 'test' or args.mode == 'dev':
+    args.batch_size = 10
+    args.epochs = 1
+
 ################################
 #     SESSION
 ################################
+
+logfile = os.path.join(loggingdir, str(datetime.datetime.strftime(datetime.datetime.now(),
+    '%Y-%m-%d %H:%M:%S') + '.txt').replace(' ', '').replace('/', ''))
+
 class SessionRun(object):
     def run_session(self, args):
         # get data
@@ -65,7 +93,7 @@ class SessionRun(object):
         ################################
         # get data and model handler
         ################################
-        data, label = data_specification(args.mode, args.data_dir, 'npy')
+        data, label, totalN = data_specification(args.mode, args.data_dir, 'npy')
         predict_file_name = 'predicted.csv'
 
         CHECKPOINT = args.checkpoint_dir
@@ -84,10 +112,10 @@ class SessionRun(object):
         # else:
         #     self.device_name = "/cpu:0"
         
-        # config = tf.ConfigProto()
-        # config.gpu_options.allow_growth = True
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
         
-        with tf.Session(graph=model.graph) as sess:
+        with tf.Session(graph=model.graph, config=config) as sess:
             if args.mode == "train":
                 print('Initializing All the variables')
                 sess.run(model.initializer)
@@ -157,23 +185,38 @@ class SessionRun(object):
                     if rand_idx % 1 == 0:
                         print('Ground Truth: ' + output_sequence(batch_Y))
                         print('Recognized As ' + output_sequence(batch_pred))
-
+                    
+                    if args.mode=='train' and ((epoch * len(rand) + rand_idx + 1) % 20 == 0 or (
+                            epoch == args.epochs - 1 and rand_idx == len(rand) - 1)):
+                            checkpoint_path = os.path.join(savedir, 'model.ckpt')
+                            model.saver.save(sess, checkpoint_path, global_step=epoch)
+                            print('Model has been saved in {}'.format(savedir))
 
                 end = time.time()
                 diff_time = end - start
                 print('Epoch ' + str(epoch + 1) +'   '+ str(diff_time) + ' s')
 
-                #save checkpoint
-                if args.mode == 'train':
-                    model.saver.save(sess, cur_checkpoint_path, global_step=epoch)
 
-                if args.mode == 'test' or args.mode == 'val':
-                    with open(predict_file_name, 'a') as f:
-                            f.write('{},{},{},{}\n'.format(epoch, 
-                                                        batch_idx,
-                                                        output_sequence(batch_Y),
-                                                        output_sequence(batch_pred)))
+                # save checkpoint 
+                if args.mode=='train':
+                    if (epoch + 1) % 1 == 0:
+                        checkpoint_path = os.path.join(savedir, 'model.ckpt')
+                        model.saver.save(sess, checkpoint_path, global_step=epoch)
+                        print('Model has been saved in {}'.format(savedir))
+                    epochER = errRate_list.sum() / totalN
+                    print('Epoch', epoch + 1, 'mean train error rate:', epochER)
+                    #logging_helper(model, logfile, epochER, epoch, diff_time, mode='config')
+                    #logging_helper(model, logfile, epochER, epoch, diff_time, mode=args.mode)
 
+                if args.mode == 'test' or args.mode == 'dev':
+                    with open(os.path.join(resultdir, args.level + '_result.txt'), 'a') as result:
+                        result.write(output_sequence(batch_Y) + '\n')
+                        result.write(output_sequence(batch_pred) + '\n')
+                        result.write('\n')
+                    epochER = errRate_list.sum() / totalN
+                    print('test error rate: ', epochER)
+                    logging_helper(model, logfile, epochER, mode=args.mode)                    
+                    
 
 if __name__ == '__main__':
     sr = SessionRun()

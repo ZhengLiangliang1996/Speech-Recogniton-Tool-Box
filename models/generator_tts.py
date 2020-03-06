@@ -23,25 +23,9 @@ def conv1d(inputs, filters, kernel_size, stride = 1, dilation = 1, activation = 
         return outputs
 
 
-#需要修改 shape 之间的关系
-def conv_transpose(inputs, output_shape, strides, name="convtrans1d", gn='1'):
-    """
-    inputs is 
-    filters is outputs
-    strides is upsample_factor
-    """
 
-    with tf.compat.v1.variable_scope(name+gn):
-        w = tf.compat.v1.get_variable(name+"w",
-                            # [kernel_width, output_depth, input_depth]
-                           shape=(strides * 2, output_shape * strides, inputs.get_shape().as_list()[-1]), 
-                           dtype = tf.float32, 
-                           initializer = tf.initializers.orthogonal(),
-                           )
-        w = spectral_normed_weight(w)
-        outputs = tf.nn.conv1d_transpose(input = inputs, filters = w, output_shape = [inputs.get_shape().as_list()[0], inputs.get_shape().as_list()[1], output_shape *  strides], strides = strides, padding = "SAME", data_format="NWC")
-
-    return outputs  
+def conv1d_transpose(inputs, filters, kernel_size, stride, padding='same', upsample='zero'):
+        
 
 
 def conditionalBatchnorm(inputs, noise, output=128, name="cbn", gn='1'):

@@ -13,7 +13,7 @@ import numpy as np
 import tensorflow as tf
 from generator_tts import generator
 from utils.data_helper import data_specification, create_batch
-sys.path.append('/home/liangliang/Desktop/VUB_ThirdSemester/MasterThesis/SpeechRecognitiontoolbox')
+sys.path.append('..')
 
 parser = argparse.ArgumentParser()
 # Data Dimention

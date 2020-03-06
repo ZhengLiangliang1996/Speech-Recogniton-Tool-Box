@@ -13,7 +13,7 @@ import tensorflow as tf
 import sys
 import argparse
 
-sys.path.append('/home/liangliang/Desktop/VUB_ThirdSemester/MasterThesis/SpeechRecognitiontoolbox')
+sys.path.append('..')
 
 from tensorflow.contrib import rnn
 from utils.rnn_cell_helper import RNN_cell

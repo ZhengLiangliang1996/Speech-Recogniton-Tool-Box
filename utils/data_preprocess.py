@@ -14,7 +14,7 @@ import os
 import argparse
 import glob
 import sys
-sys.path.append('/home/liangliang/Desktop/VUB_ThirdSemester/MasterThesis/SpeechRecognitiontoolbox')
+sys.path.append('..')
 
 import sklearn
 import numpy as np

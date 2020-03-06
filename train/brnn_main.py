@@ -10,7 +10,7 @@ import sys
 import time
 import os 
 
-sys.path.append('/home/liangliang/Desktop/VUB_ThirdSemester/MasterThesis/SpeechRecognitiontoolbox')
+sys.path.append('..')
 
 import numpy as np
 import tensorflow as tf
@@ -87,7 +87,7 @@ class SessionRun(object):
         # config = tf.ConfigProto()
         # config.gpu_options.allow_growth = True
         
-        with tf.Session(graph=model.graph) as sess:
+        with tf.Session(graph=model.graph, config) as sess:
             if args.mode == "train":
                 print('Initializing All the variables')
                 sess.run(model.initializer)
