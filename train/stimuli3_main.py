@@ -57,6 +57,9 @@ parser.add_argument('--checkpoint_dir', type=str, default= '../CHECKPOINT')
 # Feature level
 parser.add_argument('--level', type=str, default='char', help='the feature level, could be cha, phn or seq2seq')
 
+# Restore model
+parser.add_argument('--restore', type=bool, default=False, help='Restore your model or not, default is false')
+
 # get paser Argument
 args = parser.parse_args()
 
@@ -93,11 +96,9 @@ class SessionRun(object):
         ################################
         # get data and model handler
         ################################
-        data, label, totalN = data_specification(args.mode, args.data_dir, 'npy')
-        predict_file_name = 'predicted.csv'
+        data, label, _ = data_specification(args.mode, args.data_dir, 'npy')
 
         CHECKPOINT = args.checkpoint_dir
-        
         
         max_sequence_length = 0
         for i in data:
@@ -116,16 +117,20 @@ class SessionRun(object):
         config.gpu_options.allow_growth = True
         
         with tf.Session(graph=model.graph, config=config) as sess:
-            if args.mode == "train":
-                print('Initializing All the variables')
-                sess.run(model.initializer)
-            elif args.mode == "test":
+            if args.restore == True:
                 print('Restore from checkpoint')
                 ck = tf.train.get_checkpoint_state(args.checkpoint_dir)
                 if ck and ck.model_checkpoint_path:
                     model.saver.restore(sess, ck.model_checkpoint_path)
                 print('Finished restoring')
+            else: 
+                print('Initializing All the variables')
+                sess.run(model.initializer)
             
+            
+            all_errRate = np.zeros(args.epochs)
+            all_lossRate = np.zeros(args.epochs)
+
             for epoch in range(args.epochs):
                 start = time.time()
                 cur_checkpoint_path = os.path.join(CHECKPOINT, '{:.0f}'.format(start))
@@ -137,6 +142,7 @@ class SessionRun(object):
                 
 
                 errRate_list = np.zeros(len(batches))
+                loss_list = np.zeros(len(batches))
                 rand = np.random.permutation(len(batches))
 
                 for rand_idx, batch_idx in enumerate(rand):
@@ -158,6 +164,7 @@ class SessionRun(object):
                                                                                     feed_dict = feeddict)
                         print("model train")
                         errRate_list[rand_idx] = batch_errRate
+                        loss_list[rand_idx] = batch_loss
                         print('\n epoch:{},batch:{},train loss={:.3f},mean train Cha_er={:.3f}\n'.format(
                                     epoch+1, batch_idx, batch_loss, batch_errRate/args.batch_size))
 
@@ -168,6 +175,7 @@ class SessionRun(object):
                                                                                 model.errRate],
                                                                                 feed_dict = feeddict)
                         errRate_list[rand_idx] = batch_errRate
+                        loss_list[rand_idx] = batch_loss
                         print('\n epoch:{},batch:{},train loss={:.3f},mean train Cha_er={:.3f}\n'.format(
                                     epoch+1, batch_idx, batch_loss, batch_errRate/args.batch_size))
 
@@ -179,12 +187,13 @@ class SessionRun(object):
                                                                                 model.errRate],
                                                                                 feed_dict = feeddict)
                         errRate_list[rand_idx] = batch_errRate
+                        loss_list[rand_idx] = batch_loss
                         print('\n epoch:{},batch:{},train loss={:.3f},mean train Cha_er={:.3f}\n'.format(
                                     epoch+1, batch_idx, batch_loss, batch_errRate/args.batch_size))
 
                     if rand_idx % 1 == 0:
-                        print('Ground Truth: ' + output_sequence(batch_Y))
-                        print('Recognized As ' + output_sequence(batch_pred))
+                        print('Original : ' + output_sequence(batch_Y))
+                        print('Predicted: ' + output_sequence(batch_pred))
                     
                     if args.mode=='train' and ((epoch * len(rand) + rand_idx + 1) % 20 == 0 or (
                             epoch == args.epochs - 1 and rand_idx == len(rand) - 1)):
@@ -196,27 +205,40 @@ class SessionRun(object):
                 diff_time = end - start
                 print('Epoch ' + str(epoch + 1) +'   '+ str(diff_time) + ' s')
 
-
+                batches_len = len(batches)
                 # save checkpoint 
                 if args.mode=='train':
                     if (epoch + 1) % 1 == 0:
                         checkpoint_path = os.path.join(savedir, 'model.ckpt')
                         model.saver.save(sess, checkpoint_path, global_step=epoch)
                         print('Model has been saved in {}'.format(savedir))
-                    epochER = errRate_list.sum() / totalN
-                    print('Epoch', epoch + 1, 'mean train error rate:', epochER)
-                    logging_helper(model, logfile, epochER, epoch, diff_time, mode='config')
-                    logging_helper(model, logfile, epochER, epoch, diff_time, mode=args.mode)
+                    
+                    epochER = errRate_list.sum() / (batches_len * args.batch_size)
+                    epochLoss = loss_list.sum() / batches_len
+                    print('Epoch', epoch + 1, 'mean train char error rate:', epochER)
+                    print('Epoch', epoch + 1, 'mean train loss:', epochLoss)
+                    logging_helper(model, logfile, epochLoss, epochER, epoch, diff_time, mode='config')
+                    logging_helper(model, logfile, epochLoss, epochER, epoch, diff_time, mode=args.mode)
+                    all_errRate[epoch] = epochER
+                    all_lossRate[epoch] = epochLoss
 
                 if args.mode == 'test' or args.mode == 'dev':
                     with open(os.path.join(resultdir, args.level + '_result.txt'), 'a') as result:
                         result.write(output_sequence(batch_Y) + '\n')
                         result.write(output_sequence(batch_pred) + '\n')
                         result.write('\n')
-                    epochER = errRate_list.sum() / totalN
-                    print('test error rate: ', epochER)
-                    logging_helper(model, logfile, epochER, mode=args.mode)                    
-                    
+                    epochER = errRate_list.sum() / batches_len
+                    epochLoss = loss_list.sum() / batches_len
+                    print('test error rate: ', epochLoss)
+                    print('test char error rate: ', epochER)
+                    logging_helper(model, logfile, epochLoss, epochER, mode=args.mode)     
+                    all_errRate[epoch] = epochER
+                    all_lossRate[epoch] = epochLoss
+            
+            # save to txt file
+            if args.mode == 'train' and not args.keep: 
+                np.savetxt(resultdir+'/'+args.mode+'_loss.csv', all_lossRate, delimiter=',')               
+                np.savetxt(resultdir+'/'+args.mode+'_char_error.csv', all_errRate, delimiter=',')            
 
 if __name__ == '__main__':
     sr = SessionRun()

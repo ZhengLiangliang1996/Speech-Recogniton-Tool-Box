@@ -10,53 +10,20 @@ def data_specification(mode, dir, file_suffix):
         dir:  directory of the dataset, only need to specify where train/test/dev file is located
         file_suffix: suffix of those feature file
     """
-    if mode == 'train':
-        train_data = []
-        train_label= []
+    train_data = []
+    train_label= []
 
-        for fname in glob.glob(os.path.join(dir, 'feature', '*.'+file_suffix)):
-            train_data.append(np.load(fname))
+    for fname in glob.glob(os.path.join(dir, 'feature_'+mode, '*.'+file_suffix)):
+        train_data.append(np.load(fname))
 
-        for fname in glob.glob(os.path.join(dir, 'label', '*.'+file_suffix)):
-            train_label.append(np.load(fname))
+    for fname in glob.glob(os.path.join(dir, 'label_'+mode, '*.'+file_suffix)):
+        train_label.append(np.load(fname))
         
-        # total number of files
-        path = dir + '/feature'
-        total = len(os.listdir(path))
-        return train_data, train_label, total
+    # total number of files
+    path = dir + '/feature_'+ mode
+    total = len(os.listdir(path))
+    return train_data, train_label, total
 
-
-    if mode == 'test':
-        test_data = []
-        test_label= []
-
-        for fname in glob.glob(os.path.join(dir, 'test', '*.'+file_suffix)):
-            test_data.append(np.load(fname))
-
-        for fname in glob.glob(os.path.join(dir, 'test_label', '*.'+file_suffix)):
-            test_label.append(np.load(fname))
-
-        # total number of files 需要修改
-        path = dir + '/test'
-        total = len(os.listdir(path))
-
-        return test_data, test_label, total
-
-    if mode == 'val':
-        val_data = []
-        val_label= []
-
-        for fname in glob.glob(os.path.join(dir, 'val', '*.'+file_suffix)):
-            val_data.append(np.load(fname))
-
-        for fname in glob.glob(os.path.join(dir, 'val_label', '*.'+file_suffix)):
-            val_label.append(np.load(fname))
-
-        # total number of files 需要修改
-        path = dir + '/val'
-        total = len(os.listdir(path))
-        
-        return val_data, val_label, total
 # inspired by https://github.com/brianlan/automatic-speech-recognition/blob/master/src/brnn_ctc.py
 def to_sparse_tensor(label, batch_idx):
     # definition of y 

@@ -9,17 +9,18 @@ import numpy as np
 import time
 
 
-def logging_helper(model, logfile,loss, epochs = 0,delta_time = 0, mode='train'):
+def logging_helper(model, logfile, loss, char_er, epochs = 0, delta_time = 0, mode='train'):
     if mode != 'train' and mode != 'test' and mode != 'config' and mode != 'dev':
         raise TypeError('mode should be train or test or config.')
     
     if mode == 'config':
         with open(logfile, "a") as savefile:
-            savefile.write(model.config+'\n')
+            savefile.write(str(model.config)+'\n')
     elif mode == 'train':
         with open(logfile, "a") as savefile:
             savefile.write(str(time.strftime("%X %x %Z"))+'\n')
             savefile.write("Epoch:" +str(epochs + 1)+ "training error is "+ str(loss)+'\n')
+            savefile.write("Epoch:" +str(epochs + 1)+ "training char error is "+ str(char_er)+'\n')
             savefile.write("Epoch:" +str(epochs + 1)+ "training time "+ str(delta_time)+' s\n')
     elif mode == 'test':
         logfile = 'TEST_'+logfile
@@ -27,6 +28,8 @@ def logging_helper(model, logfile,loss, epochs = 0,delta_time = 0, mode='train')
             savefile.write(str(model.config)+'\n')
             savefile.write(str(time.strftime("%X %x %Z"))+'\n')
             savefile.write("testing erro is :"+str(loss)+'\n')
+            savefile.write("testing char erro is :"+str(char_er)+'\n')
+
 
 
 
