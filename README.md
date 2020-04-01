@@ -45,7 +45,7 @@ End with an example of getting some data out of the system or using it for a lit
 ## Implementation Details and NN Architecture
 1. Bi-RNN
 2. Bi-LSTM
-3. CNN
+3. Deepspeech2
 4. GAN
 
 ## Running the tests
