@@ -1,6 +1,6 @@
 # Speech Recognition Tool Box
 
-A  end-to-end speech recognition tool box implemented in Tensorflow
+A  end-to-end speech recognition tool box implemented in Tensorflow 2.0
 
 ## Getting Started
 
