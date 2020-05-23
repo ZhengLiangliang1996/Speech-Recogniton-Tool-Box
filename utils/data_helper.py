@@ -1,4 +1,4 @@
-import glob 
+import glob
 import os
 import numpy as np
 
@@ -18,7 +18,7 @@ def data_specification(mode, dir, file_suffix):
 
     for fname in glob.glob(os.path.join(dir, 'label_'+mode, '*.'+file_suffix)):
         train_label.append(np.load(fname))
-        
+
     # total number of files
     path = dir + '/feature_'+ mode
     total = len(os.listdir(path))
@@ -26,7 +26,7 @@ def data_specification(mode, dir, file_suffix):
 
 # inspired by https://github.com/brianlan/automatic-speech-recognition/blob/master/src/brnn_ctc.py
 def to_sparse_tensor(label, batch_idx):
-    # definition of y 
+    # definition of y
     # self.y_indices = tf.placeholder(tf.int64, shape = (None, 2)) # y_indices eg: ([2, 3], [1, 2])
     # self.y_value = tf.placeholder(tf.int64)
     # self.y_shape = tf.placeholder(tf.int64)
@@ -39,7 +39,7 @@ def to_sparse_tensor(label, batch_idx):
         for j, v in enumerate(label[idx]):
             indices.append([i, j])
             value.append(v)
-    
+
     shape = [len(batch_idx), np.max(indices, axis=0)[1] + 1]
     return (np.array(indices), np.array(value), np.array(shape))
 

@@ -30,7 +30,7 @@ parser.add_argument('--device', type=str, default='cpu', help='Training model wi
 
 # Training parameter
 parser.add_argument('--lr', type=float, default=0.0001, help='Learning Rate')
-parser.add_argument('--epochs', type=int, default=2, help='Number of training steps')
+parser.add_argument('--epochs', type=int, default=3, help='Number of training steps')
 parser.add_argument('--batch_size', type=int, default=16, help='Batch size')
 parser.add_argument('--display_step', type=int, default=200, help='Step of displaying accuracy')
 parser.add_argument('--keep_prob', type=float, default=0.5, help='Probability of dropout')
@@ -58,9 +58,9 @@ parser.add_argument('--data_dir', type=str, default=dir_all, help='Data director
 parser.add_argument('--tensorboard_log_dir', type=str, default= '../TENSORBOARD_LOG', help='TENSORBOARD_LOG directory')
 parser.add_argument('--checkpoint_dir', type=str, default= '../CHECKPOINT')
 # loss pickle name
-parser.add_argument('--pickle_name', type=str, default='pickle_path.pickle', help='name of the loss to be saved, extension is .pickle')
+parser.add_argument('--pickle_name', type=str, default='vgg.pickle', help='name of the loss to be saved, extension is .pickle')
 # model save name
-parser.add_argument('--model_name', type=str, default='Bi-lstm.h5', help='name of the model(hdf5) to be saved, extension is h5')
+parser.add_argument('--model_name', type=str, default='vgg.h5', help='name of the model(hdf5) to be saved, extension is h5')
 # Feature level
 parser.add_argument('--level', type=str, default='char', help='the feature level, could be cha, phn or seq2seq')
 
@@ -97,7 +97,6 @@ if args.mode == 'test':
 logfile = os.path.join(loggingdir, str(datetime.datetime.strftime(datetime.datetime.now(),
     '%Y-%m-%d %H:%M:%S') + '.txt').replace(' ', '').replace('/', ''))
 
-# TODO: adding test and restore the model then train the mode
 class SessionRun(object):
     def run_session(self, args):
         # get data

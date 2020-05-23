@@ -15,7 +15,7 @@ sys.path.append('..')
 
 import numpy as np
 import tensorflow as tf
-from models.brnn import brnn
+# from models.brnn import brnn
 from models.brnn_keras import brnn_keras
 from utils.data_helper_keras import data_specification, create_batch
 from utils.cha_level_helper import output_sequence
@@ -31,16 +31,16 @@ parser.add_argument('--device', type=str, default='cpu', help='Training model wi
 
 # Training parameter
 parser.add_argument('--lr', type=float, default=0.0001, help='Learning Rate')
-parser.add_argument('--epochs', type=int, default=2, help='Number of training steps')
+parser.add_argument('--epochs', type=int, default=3, help='Number of training steps')
 parser.add_argument('--batch_size', type=int, default=16, help='Batch size')
 parser.add_argument('--display_step', type=int, default=200, help='Step of displaying accuracy')
 parser.add_argument('--keep_prob', type=float, default=0.5, help='Probability of dropout')
 
 # NN architecture Parameters
 parser.add_argument('--hidden_size', type=int, default=768, help='Hidden size of rnn/lstm/gru cell')
-parser.add_argument('--num_layers', type=int, default=2, help='Number of layers in rnn/lstm/gru cell')
-parser.add_argument('--rnn_celltype', type=str, default='gru', help='RNN cell type, gru, lstm')
-
+parser.add_argument('--num_layers', type=int, default=2,help='Number of layers in rnn/lstm/gru cell')
+parser.add_argument('--rnn_celltype', type=str, default='lstm', help='RNN cell type, gru, lstm')
+parser.add_argument('--is_brnn', type=bool, default=True)
 # NN optimizer
 parser.add_argument('--optimizer', type=str, default='adam', help='Optimizer to use')
 parser.add_argument('--activation', type=str, default='relu', help='Activation: sigmoid, tanh, relu')
@@ -57,9 +57,9 @@ parser.add_argument('--data_dir', type=str, default=dir_all, help='Data director
 parser.add_argument('--tensorboard_log_dir', type=str, default= '../TENSORBOARD_LOG', help='TENSORBOARD_LOG directory')
 parser.add_argument('--checkpoint_dir', type=str, default= '../CHECKPOINT')
 # loss pickle name
-parser.add_argument('--pickle_name', type=str, default='pickle_path.pickle', help='name of the loss to be saved, extension is .pickle')
+parser.add_argument('--pickle_name', type=str, default='768_unit_2_layer_BILSTM.pickle', help='name of the loss to be saved, extension is .pickle')
 # model save name
-parser.add_argument('--model_name', type=str, default='Bi-lstm.h5', help='name of the model(hdf5) to be saved, extension is h5')
+parser.add_argument('--model_name', type=str, default='768_unit_2_layer_BILSTM.h5', help='name of the model(hdf5) to be saved, extension is h5')
 # Feature level
 parser.add_argument('--level', type=str, default='char', help='the feature level, could be cha, phn or seq2seq')
 
@@ -105,9 +105,8 @@ class SessionRun(object):
         # get data and model handler
         ################################
         # training data
-
         data, label, _ = data_specification(args.mode, args.data_dir, 'npy')
-        # 暂时设置为test 数据变化之后会进行修改
+
         dev_data, dev_label, _ = data_specification('test', args.data_dir,'npy')
 
         max_sequence_length = 0
@@ -122,7 +121,7 @@ class SessionRun(object):
             max_sequence_length = max(max_sequence_length, i.shape[1])
 
         # Checkpointer
-        checkpointer = ModelCheckpoint(filepath=savedir+'/'+args.model_name, verbose=1)
+        checkpointer = ModelCheckpoint(filepath=savedir+'/'+args.model_name, verbose=0)
 
         # Training Phase
         model = brnn_keras(args, max_sequence_length)

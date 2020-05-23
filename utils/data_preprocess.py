@@ -28,6 +28,7 @@ from python_speech_features import delta
 phn = ['aa', 'ae', 'ah', 'ao', 'aw', 'ax', 'ax-h', 'axr', 'ay', 'b', 'bcl', 'ch', 'd', 'dcl', 'dh', 'dx', 'eh', 'el', 'em', 'en', 'eng', 'epi', 'er', 'ey', 'f', 'g', 'gcl', 'h#', 'hh', 'hv', 'ih', 'ix', 'iy', 'jh', 'k', 'kcl', 'l', 'm', 'n', 'ng', 'nx', 'ow', 'oy', 'p', 'pau', 'pcl', 'q', 'r', 's', 'sh', 't', 'tcl', 'th', 'uh', 'uw', 'ux', 'v', 'w', 'y', 'z', 'zh']
 
 ## cleaned phonemes
+# = ['sil', 'aa', 'ae', 'ah', 'ao', 'aw', 'ax', 'ax-h', 'ay', 'b', 'ch', 'd', 'dh', 'dx', 'eh', 'el', 'en', 'epi', 'er', 'ey', 'f', 'g', 'hh', 'ih', 'ix', 'iy', 'jh', 'k', 'l', 'm', 'n', 'ng', 'ow', 'oy', 'p', 'q', 'r', 's', 'sh', 't', 'th', 'uh', 'uw', 'v', 'w', 'y', 'z', 'zh']
 #phn = ['sil', 'aa', 'ae', 'ah', 'ao', 'aw', 'ax', 'ax-h', 'ay', 'b', 'ch', 'd', 'dh', 'dx', 'eh', 'el', 'en', 'epi', 'er', 'ey', 'f', 'g', 'hh', 'ih', 'ix', 'iy', 'jh', 'k', 'l', 'm', 'n', 'ng', 'ow', 'oy', 'p', 'q', 'r', 's', 'sh', 't', 'th', 'uh', 'uw', 'v', 'w', 'y', 'z', 'zh']
 
 def preprocess(root_directory):
@@ -52,7 +53,6 @@ def wav2feature(root_directory, save_directory, name, win_len, win_step, mode, f
     data_dir = os.path.join(root_directory, name)
     preprocess(data_dir)
     print(data_dir)
-    print(222)
 
     for subdir, dirs, files in os.walk(data_dir):
         for f in files:
@@ -60,8 +60,8 @@ def wav2feature(root_directory, save_directory, name, win_len, win_step, mode, f
             filenameNoSuffix =  os.path.splitext(fullFilename)[0]
             if f.endswith('.wav'):
                 rate = None
-                sig = None    
-                
+                sig = None
+
                 (rate,sig)= wav.read(fullFilename)
                 print(rate)
                 # Get MFCC feature
@@ -82,6 +82,7 @@ def wav2feature(root_directory, save_directory, name, win_len, win_step, mode, f
                 if seq2seq is True:
                     targets.append(28)
                 for c in characters:
+                    # initizalied to 1, so its better map it to space
                     if c == ' ':
                         targets.append(0)
                     elif c == "'":
@@ -112,14 +113,16 @@ def wav2feature(root_directory, save_directory, name, win_len, win_step, mode, f
 
 if __name__ == '__main__':
     # character or phoneme
-    parser = argparse.ArgumentParser(prog='data preprocess',
-                                     description='Script to preprocess stimuli3 data')
+    parser = argparse.ArgumentParser(prog='data preprocess', description='Script to preprocess stimuli3 data')
 
-    parser.add_argument("-path", help="stimuli3 dataset", 
-                        type=str, default="/home/liangliang/Desktop/VUB_ThirdSemester/MasterThesis/SpeechRecognitiontoolbox/dataset")
+    parser.add_argument("-path", help="stimuli3 dataset", type=str, default="../dataset")
 
-    parser.add_argument("-save", help="Directory where preprocessed arrays are to be saved",
-                        type=str, default="/home/liangliang/Desktop/VUB_ThirdSemester/MasterThesis/SpeechRecognitiontoolbox/samples")
+    parser.add_argument("-save", help="Directory where preprocessed arrays are to be
+            saved",type=str,
+            default="../samples")
+
+    # parser.add_argument("-save", help="Directory where preprocessed arrays are to be saved",
+                        #type=str, default="/home/liangliang/Desktop/VUB_ThirdSemester/MasterThesis/SpeechRecognitiontoolbox/samples")
     parser.add_argument("-n", "--name", help="Name of the dataset", type=str, default='stimuli3')
 
     parser.add_argument("-l", "--level", help="Level",
@@ -139,7 +142,7 @@ if __name__ == '__main__':
                         default=0.01, help="specify the window step length of feature")
 
 if __name__ == "__main__":
-    
+
     args = parser.parse_args()
     root_directory = args.path
     save_directory = args.save
@@ -150,7 +153,7 @@ if __name__ == "__main__":
     seq2seq = args.seq2seq
     win_len = args.winlen
     win_step = args.winstep
-    
+
     if root_directory == ".":
         root_directory = os.getcwd()
     if save_directory == ".":
@@ -159,5 +162,4 @@ if __name__ == "__main__":
         raise ValueError("Root directory does not exist!")
     if not os.path.exists(save_directory):
         os.makedirs(save_directory)
-    wav2feature(root_directory, save_directory, name=name, win_len=win_len, win_step=win_step,
-                mode=mode, feature_len=feature_len, seq2seq=seq2seq, save=True)
+    wav2feature(root_directory, save_directory, name=name, win_len=win_len, win_step=win_step,mode=mode, feature_len=feature_len, seq2seq=seq2seq, save=True)

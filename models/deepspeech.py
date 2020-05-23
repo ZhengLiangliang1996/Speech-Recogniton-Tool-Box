@@ -55,7 +55,7 @@ class Deepspeech2(object):
         # Main acoustic input
 
         # BatchNorm
-        model.add(BatchNormalization(input_shape=(None, args.num_features),name='BN_0'))
+        model.add(BatchNormalization(axis=-1, input_shape=(None, args.num_features),name='the'))
 
         # 3 layer 2D Conv Layer with clippedRuLU
         model.add(Conv1D(512, 5, strides=1, activation=ReLU(20), name='Conv1D_1'))
@@ -127,17 +127,28 @@ class Deepspeech2(object):
 
         return model
     def ctc_init(self, args):
-        y_pred = self.model.outputs[0]
-        model_input = self.model.inputs[0]
+        self.outputs = self.model.outputs[0]
+        self.inputs  = self.model.inputs[0]
+        self.labels = Input(name='the_labels', shape=[None], dtype='float32')
+        self.input_length = Input(name='input_length', shape=[1], dtype='int64')
+        self.label_length = Input(name='label_length', shape=[1], dtype='int64')
+        self.loss_out = Lambda(ctc_lambda, output_shape=(1,), name='ctc')\
+            ([self.labels, self.outputs, self.input_length, self.label_length])
+        self.model_2 = Model(inputs=[self.labels, self.inputs,
+            self.input_length, self.label_length], outputs=self.loss_out)
 
-        labels = Input(name='the_labels', shape=[None,], dtype='int32')
-        input_length = Input(name='input_length', shape=[1], dtype='int32')
-        label_length = Input(name='label_length', shape=[1], dtype='int32')
+#    def ctc_init(self, args):
+        # y_pred = self.model.outputs[0]
+        # model_input = self.model.inputs[0]
 
-        loss_out = Lambda(ctc_lambda_func, name='ctc')([y_pred, labels, input_length, label_length])
+        # labels = Input(name='the_labels', shape=[None,], dtype='int32')
+        # input_length = Input(name='input_length', shape=[1], dtype='int32')
+        # label_length = Input(name='label_length', shape=[1], dtype='int32')
 
-        self.model_2 = Model(inputs=[model_input, labels, input_length, label_length], outputs=loss_out)
-        print(self.model_2.summary())
+        # loss_out = Lambda(ctc_lambda_func, name='ctc')([y_pred, labels, input_length, label_length])
+
+        # self.model_2 = Model(inputs=[model_input, labels, input_length, label_length], outputs=loss_out)
+        # print(self.model_2.summary())
 
     def opt_init(self, args):
         self.opt = Adam(lr = self.args.lr, beta_1 = 0.9, beta_2 = 0.999, decay = 0.01, epsilon = 10e-8)

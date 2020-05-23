@@ -1,6 +1,6 @@
 # Speech Recognition Tool Box
 
-A  end-to-end speech recognition tool box implemented in Tensorflow 2.0
+A  end-to-end speech recognition tool box implemented in Tensorflow
 
 ## Getting Started
 
@@ -45,7 +45,7 @@ End with an example of getting some data out of the system or using it for a lit
 ## Implementation Details and NN Architecture
 1. Bi-RNN
 2. Bi-LSTM
-3. Deepspeech2
+3. CNN
 4. GAN
 
 ## Running the tests

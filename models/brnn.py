@@ -2,7 +2,7 @@
 Author: Liangliang ZHENGT
 Time: 2019/11/6
 model: BRNN
-Remarks: Some of the part, #Training Parameters # Training data Parameters # Import data 
+Remarks: Some of the part, #Training Parameters # Training data Parameters # Import data
          need to be modified to arg using argparse
 """
 
@@ -18,63 +18,41 @@ sys.path.append('..')
 from tensorflow.contrib import rnn
 from utils.rnn_cell_helper import RNN_cell
 
-# Multi dynamic brnn model
-# Scope PART LEFT
-# def multi_dynamic(args, inputs, rnn_cell, sequence_length, max_seq_length):
-#     print(inputs)
-#     hidden_inputs = inputs
-#     for i in range(args.num_layers):
-#         # Forward direction cell
-#         rnn_fw_cell = rnn_cell(hidden_inputs, args.activation)
-#         # Backward direction cell
-#         rnn_bwd_cell = rnn_cell(hidden_inputs, args.activation)
-#         (output_fw, output_bw), _ = tf.nn.bidirectional_dynamic_rnn(rnn_fw_cell,
-#                                         rnn_bwd_cell, 
-#                                         inputs = hidden_inputs,
-#                                         sequence_length=sequence_length,
-#                                         dtype=tf.float32,
-#                                         time_major=True,
-#                                         scope='multi_dynamic_{}'.format(i))
+def multi_brnn_layer(args,
+                     rnn_cell,
+                     inputs,
+                     max_seq_length,
+                     seqLengths,
+                     time_major=True):
 
-#         print(tf.shape(output_fw))
-#         hidden_outputs = output_fw + output_bw 
-#         print(tf.shape(hidden_outputs))
-#         hidden_outputs = tf.contrib.layers.dropout(hidden_outputs, keep_prob = args.dropout, is_training =('train' == args.mode))
-
-#         # 
-#         if i < args.num_layers - 1:
-#             hidden_inputs = hidden_outputs
-#         else:
-#             # 分成max_seq_length等分
-#             output_splited = tf.split(hidden_outputs, max_seq_length, axis=0)
-#             # 遵循self.X的shape格式
-#             output_drnn = [tf.reshape(t, shape=(args.batch_size, args.hidden_size)) for t in output_splited]
-    
-#     return output_drnn
-
-
-def brnn_layer(fw_cell, bw_cell, inputs, seq_lengths, scope=None):
-    (output_fw, output_bw), _ = tf.nn.bidirectional_dynamic_rnn(fw_cell,
-                                                                bw_cell,
-                                                                inputs=inputs,
-                                                                dtype=tf.float32,
-                                                                sequence_length=seq_lengths,
-                                                                time_major=True,
-                                                                scope=scope)
-
-    brnn_combined_outputs = output_fw + output_bw
-    return brnn_combined_outputs
-
-def multi_brnn_layer(args, rnn_cell, inputs, seq_lengths, num_layers, is_training, use_dropout=True, keep_prob=0.5):
-    inner_outputs = inputs
-    for n in range(num_layers):
+    hid_input = inputs
+    for i in range(args.num_layers):
+        scope = 'brnn' + str(i + 1)
         forward_cell = rnn_cell(args.hidden_size)
         backward_cell = rnn_cell(args.hidden_size)
-        inner_outputs = brnn_layer(forward_cell, backward_cell, inner_outputs, seq_lengths, 'brnn_{}'.format(n))
-        if use_dropout:
-            inner_outputs = tf.contrib.layers.dropout(inner_outputs, keep_prob=keep_prob, is_training=is_training)
+        # tensor of shape: [max_time, batch_size, input_size]
+        outputs, output_states = tf.nn.bidirectional_dynamic_rnn(forward_cell, backward_cell,
+                                                           inputs=hid_input,
+                                                           dtype=tf.float32,
+                                                           sequence_length=seqLengths,
+                                                           time_major=True,
+                                                           scope=scope)
+        # forward output, backward ouput
+        # tensor of shape: [max_time, batch_size, input_size]
+        output_fw, output_bw = outputs
+        output_fb = tf.concat([output_fw, output_bw], 2)
+        shape = output_fb.get_shape().as_list()
+        output_fb = tf.reshape(output_fb, [shape[0], shape[1], 2, int(shape[2] / 2)])
+        hidden = tf.reduce_sum(output_fb, 2)
+        hidden = tf.contrib.layers.dropout(hidden, args.keep_prob, is_training = (args.mode == 'train'))
 
-    return inner_outputs
+        if i != args.num_layers - 1:
+            hid_input = hidden
+        else:
+            outputXrs = tf.reshape(hidden, [-1, args.hidden_size])
+            output_list = tf.split(outputXrs, max_seq_length, 0)
+            fbHrs = [tf.reshape(t, [args.batch_size, args.hidden_size]) for t in output_list]
+    return fbHrs
 
 class brnn(object):
     def __init__(self, args, max_seq_length):
@@ -83,11 +61,22 @@ class brnn(object):
         mid = RNN_cell()
         self.rnn_cell = mid.make_cell(args.rnn_celltype, args.layer_norm)
         self.graph_run(args, max_seq_length)
-        
+
     # def graph_run(self, args):
     def graph_run(self, args, max_seq_length):
         self.graph = tf.Graph()
         with self.graph.as_default():
+<<<<<<< HEAD
+            self.config = {'rnn_celltype': args.rnn_celltype,
+                           'num_layers': args.num_layers,
+                           'hidden_size': args.hidden_size,
+                           'num_classes': args.num_classes,
+                           'activation': args.activation,
+                           'optimizer': args.optimizer,
+                           'keep_prob': args.keep_prob,
+                           'batch_size': args.batch_size,
+                           'epochs': args.epochs}
+=======
             self.config = {'rnn_cell_type': args.rnn_celltype,
                            'num_layer': args.num_layers,
                            'num_hidden': args.hidden_size,
@@ -97,8 +86,9 @@ class brnn(object):
                            'keep prob': args.keep_prob,
                            'batch size': args.batch_size, 
                            'epoch': args.epochs}
+>>>>>>> master
             self.X = tf.placeholder(tf.float32, shape = (max_seq_length, args.batch_size, args.num_features))
-            
+
             #for Sparse Tensor
             self.y_indices = tf.placeholder(tf.int64, shape = (None, 2)) # y_indices eg: ([2, 3], [1, 2])
             self.y_value = tf.placeholder(tf.int64)
@@ -108,19 +98,22 @@ class brnn(object):
             self.sequence_length = tf.placeholder(tf.int32, shape=(args.batch_size, ))
 
             #output_drnn = multi_dynamic(args, self.X, self.rnn_cell, self.sequence_length, max_seq_length)
-            output_drnn = multi_brnn_layer(args, self.rnn_cell, self.X, self.sequence_length, args.num_layers, True, keep_prob=0.5)
-            output_drnn = [tf.reshape(t, shape=(args.batch_size, args.hidden_size)) for t in tf.split(output_drnn,max_seq_length,0)]
+            output_drnn = multi_brnn_layer(args, self.rnn_cell, self.X, max_seq_length, self.sequence_length)
+
             # weights and biases: for the last fully connected layer
             # CTC
-            fc_W = tf.get_variable('fc_W', initializer=tf.truncated_normal([args.hidden_size, args.num_classes]))
-            fc_b = tf.get_variable('fc_b', initializer=tf.truncated_normal([args.num_classes]))
+            with tf.name_scope('fc-layer'):
+                with tf.variable_scope('fc'):
+                    weights = tf.Variable(tf.truncated_normal([args.hidden_size, args.num_classes], name='weights'))
+                    biases = tf.Variable(tf.zeros([args.num_classes]), name='biases')
+                    # fc_W = tf.get_variable('fc_W', initializer=tf.truncated_normal([args.hidden_size, args.num_classes]))
+                    # fc_b = tf.get_variable('fc_b', initializer=tf.zeros([args.num_class]))
+                    logits = [tf.matmul(t, weights) + biases for t in output_drnn]
 
-            logits = [tf.matmul(t, fc_W) + fc_b for t in output_drnn]
             logits_stack = tf.stack(logits, axis = 0)
             self.loss = tf.reduce_mean(tf.nn.ctc_loss(self.Y, logits_stack, self.sequence_length))
-
             self.var_trainable_op = tf.trainable_variables()
-            
+
             if args.grad_clip == 1:
                 grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, self.var_trainable_op), args.grad_clip)
                 self.optimizer = tf.train.AdamOptimizer(args.lr).apply_gradients(zip(grads, self.var_trainable_op))
@@ -133,6 +126,6 @@ class brnn(object):
 
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=5, keep_checkpoint_every_n_hours=1)
             self.initializer = tf.global_variables_initializer()
-            
+
 
 

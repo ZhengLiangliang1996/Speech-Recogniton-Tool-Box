@@ -51,46 +51,71 @@ class brnn_keras(object):
         # Main acoustic input
         self.inputs = Input(name='the_input', shape=(None, self.args.num_features))
         # Specify the layers in your network
-        if self.args.rnn_celltype == 'gru':
-            for i in range(self.args.num_layers):
-                if i == 0:
-                    bidir_rnn = Bidirectional(GRU(self.args.hidden_size,
-                                                  activation=self.args.activation,
-                                                  return_sequences=True,
-                                                  implementation=2,
-                                                  name='bidir'+str(i)),
-                                                  merge_mode='concat')(self.inputs)
-                    bn_rnn = BatchNormalization()(bidir_rnn)
-                    dropout_rnn = Dropout(rate=self.args.keep_prob)(bn_rnn)
-                else:
-                    bidir_rnn = Bidirectional(GRU(self.args.hidden_size,
-                                                  activation=self.args.activation,
-                                                  return_sequences=True,
-                                                  implementation=2,
-                                                  name='bidir'+str(i)),
-                                                  merge_mode='concat')(dropout_rnn)
-                    bn_rnn = BatchNormalization()(bidir_rnn)
-                    dropout_rnn = Dropout(rate=self.args.keep_prob)(bn_rnn)
-        elif self.args.rnn_celltype == 'lstm':
-            for i in range(self.args.num_layers):
-                if i == 0:
-                    bidir_rnn = Bidirectional(LSTM(self.args.hidden_size,
-                                                  activation=self.args.activation,
-                                                  return_sequences=True,
-                                                  implementation=2,
-                                                  name='bidir'+str(i)),
-                                                  merge_mode='concat')(self.inputs)
-                    bn_rnn = BatchNormalization()(bidir_rnn)
-                    dropout_rnn = Dropout(rate=self.args.keep_prob)(bn_rnn)
-                else:
-                    bidir_rnn = Bidirectional(LSTM(self.args.hidden_size,
-                                                  activation=self.args.activation,
-                                                  return_sequences=True,
-                                                  implementation=2,
-                                                  name='bidir'+str(i)),
-                                                  merge_mode='concat')(dropout_rnn)
-                    bn_rnn = BatchNormalization()(bidir_rnn)
-                    dropout_rnn = Dropout(rate=self.args.keep_prob)(bn_rnn)
+        if self.args.is_brnn == True:
+            if self.args.rnn_celltype == 'gru':
+                for i in range(self.args.num_layers):
+                    if i == 0:
+                        bidir_rnn = Bidirectional(GRU(self.args.hidden_size,
+                                                      activation=self.args.activation,
+                                                      return_sequences=True,
+                                                      implementation=2,
+                                                      name='bidir'+str(i)),
+                                                      merge_mode='concat')(self.inputs)
+                        bn_rnn = BatchNormalization()(bidir_rnn)
+                        dropout_rnn = Dropout(rate=self.args.keep_prob)(bn_rnn)
+                    else:
+                        bidir_rnn = Bidirectional(GRU(self.args.hidden_size,
+                                                      activation=self.args.activation,
+                                                      return_sequences=True,
+                                                      implementation=2,
+                                                      name='bidir'+str(i)),
+                                                      merge_mode='concat')(dropout_rnn)
+                        bn_rnn = BatchNormalization()(bidir_rnn)
+                        dropout_rnn = Dropout(rate=self.args.keep_prob)(bn_rnn)
+            elif self.args.rnn_celltype == 'lstm':
+                for i in range(self.args.num_layers):
+                    if i == 0:
+                        bidir_rnn = Bidirectional(LSTM(self.args.hidden_size,
+                                                      return_sequences=True,
+                                                      name='bidir'+str(i)))(self.inputs)
+                        bn_rnn = BatchNormalization()(bidir_rnn)
+                        dropout_rnn = Dropout(rate=self.args.keep_prob)(bn_rnn)
+                    else:
+                        bidir_rnn = Bidirectional(LSTM(self.args.hidden_size,
+                                                      return_sequences=True,
+                                                      name='bidir'+str(i)))(dropout_rnn)
+                        bn_rnn = BatchNormalization()(bidir_rnn)
+                        dropout_rnn = Dropout(rate=self.args.keep_prob)(bn_rnn)
+        else:
+            if self.args.rnn_celltype == 'gru':
+                for i in range(self.args.num_layers):
+                    if i == 0:
+                        bidir_rnn = GRU(self.args.hidden_size,
+                                        return_sequences=True,
+                                        name='gru'+str(i))(self.inputs)
+                        bn_rnn = BatchNormalization()(bidir_rnn)
+                        dropout_rnn = Dropout(rate=self.args.keep_prob)(bn_rnn)
+                    else:
+                        bidir_rnn = GRU(self.args.hidden_size,
+                                        return_sequences=True,
+                                        name='gru'+str(i))(dropout_rnn)
+                        bn_rnn = BatchNormalization()(bidir_rnn)
+                        dropout_rnn = Dropout(rate=self.args.keep_prob)(bn_rnn)
+            elif self.args.rnn_celltype == 'lstm':
+                for i in range(self.args.num_layers):
+                    if i == 0:
+                        bidir_rnn = LSTM(self.args.hidden_size,
+                                         return_sequences=True,
+                                         name='lstm'+str(i))(self.inputs)
+                        bn_rnn = BatchNormalization()(bidir_rnn)
+                        dropout_rnn = Dropout(rate=self.args.keep_prob)(bn_rnn)
+                    else:
+                        bidir_rnn = LSTM(self.args.hidden_size,
+                                         return_sequences=True,
+                                         name='lstm'+str(i))(dropout_rnn)
+                        bn_rnn = BatchNormalization()(bidir_rnn)
+                        dropout_rnn = Dropout(rate=self.args.keep_prob)(bn_rnn)
+
 
         self.outputs = Dense(self.args.num_classes)(dropout_rnn)
         # Specify the model
