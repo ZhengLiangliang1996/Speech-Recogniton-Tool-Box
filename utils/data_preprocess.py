@@ -44,6 +44,7 @@ def preprocess(root_directory):
                 with open(subfile, 'w+') as sp:
                     sp.write(label)
 
+
 def wav2feature(root_directory, save_directory, name, win_len, win_step, mode, feature_len, seq2seq, save):
     print(111)
 

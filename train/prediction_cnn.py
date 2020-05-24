@@ -111,7 +111,6 @@ def prediction(args, number, data_dir='../samples/cha/stimuli3/0', model_path=""
 
     for i in data:
         max_sequence_length = max(max_sequence_length, i.shape[1])
-
     # Training Phase
     model = CNN(args, max_sequence_length)
 
@@ -148,11 +147,11 @@ def prediction(args, number, data_dir='../samples/cha/stimuli3/0', model_path=""
 
         output_matrix(prediction[0])
 def run_prediction(args, model_path):
-    all_models = sorted(glob(model_path+"cnn2layer.h5"))
+    all_models = sorted(glob(model_path+"more_cnn_2_layer.h5"))
 
     print(all_models)
     model_names = [item[:] for item in all_models]
-    data_dir='../sample_test/cha/stimuli3/0'
+    data_dir='../samples/cha/stimuli3/0'
     print(args)
     for i in model_names:
         prediction(args, number=2, data_dir=data_dir,

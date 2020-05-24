@@ -11,7 +11,7 @@ import time
 <<<<<<< HEAD
 import os
 =======
-import os 
+import os
 >>>>>>> master
 
 sys.path.append('..')
@@ -31,7 +31,7 @@ parser = argparse.ArgumentParser()
 <<<<<<< HEAD
 # Training model
 =======
-# Training model 
+# Training model
 >>>>>>> master
 parser.add_argument('--mode', type=str, default='train', help='Mode, test, train or validation')
 parser.add_argument('--device', type=str, default='cpu', help='Training model with cpu or gpu')
@@ -85,8 +85,8 @@ class SessionRun(object):
 
 
 =======
-        
-        
+
+
 >>>>>>> master
         max_sequence_length = 0
         for i in data:
@@ -99,8 +99,8 @@ class SessionRun(object):
         model = brnnkeras(args, max_sequence_length)
         model.ctc_model.summary()
 =======
-        
-        batches = create_batch(args, data, max_sequence_length, label, args.mode)                
+
+        batches = create_batch(args, data, max_sequence_length, label, args.mode)
         model = brnn(args, max_sequence_length)
 
 >>>>>>> master
@@ -114,10 +114,10 @@ class SessionRun(object):
         # config.gpu_options.allow_growth = True
 
 =======
-        
+
         # config = tf.ConfigProto()
         # config.gpu_options.allow_growth = True
-        
+
 >>>>>>> master
         with tf.Session(graph=model.graph, config) as sess:
             if args.mode == "train":
@@ -132,7 +132,7 @@ class SessionRun(object):
 <<<<<<< HEAD
 
 =======
-            
+
 >>>>>>> master
             for epoch in range(args.epochs):
                 start = time.time()
@@ -145,7 +145,7 @@ class SessionRun(object):
 <<<<<<< HEAD
 
 =======
-                
+
 >>>>>>> master
 
                 errRate_list = np.zeros(len(batches))
@@ -159,9 +159,9 @@ class SessionRun(object):
                                 model.y_indices: batch_label_indices,
                                 model.y_value: batch_label_value,
 =======
-                    feeddict = {model.X: batch_data, 
+                    feeddict = {model.X: batch_data,
                                 model.y_indices: batch_label_indices,
-                                model.y_value: batch_label_value, 
+                                model.y_value: batch_label_value,
 >>>>>>> master
                                 model.y_shape: batch_label_shape,
                                 model.sequence_length: batch_sequence_length}
@@ -172,8 +172,8 @@ class SessionRun(object):
                         _, batch_loss, batch_pred, batch_Y, batch_errRate = sess.run([model.optimizer,
                                                                                     model.loss,
 =======
-                        _, batch_loss, batch_pred, batch_Y, batch_errRate = sess.run([model.optimizer, 
-                                                                                    model.loss, 
+                        _, batch_loss, batch_pred, batch_Y, batch_errRate = sess.run([model.optimizer,
+                                                                                    model.loss,
 >>>>>>> master
                                                                                     model.pred,
                                                                                     model.Y,
@@ -188,7 +188,7 @@ class SessionRun(object):
 <<<<<<< HEAD
                         batch_loss, batch_pred, batch_Y, batch_errRate = sess.run([model.loss,
 =======
-                        batch_loss, batch_pred, batch_Y, batch_errRate = sess.run([model.loss, 
+                        batch_loss, batch_pred, batch_Y, batch_errRate = sess.run([model.loss,
 >>>>>>> master
                                                                                 model.pred,
                                                                                 model.Y,
@@ -203,8 +203,8 @@ class SessionRun(object):
                         batch_loss, batch_pred, batch_Y, batch_errRate = sess.run([model.optimizer,
                                                                                 model.loss,
 =======
-                        batch_loss, batch_pred, batch_Y, batch_errRate = sess.run([model.optimizer, 
-                                                                                model.loss, 
+                        batch_loss, batch_pred, batch_Y, batch_errRate = sess.run([model.optimizer,
+                                                                                model.loss,
 >>>>>>> master
                                                                                 model.pred,
                                                                                 model.Y,
@@ -232,7 +232,7 @@ class SessionRun(object):
 <<<<<<< HEAD
                             f.write('{},{},{},{}\n'.format(epoch,
 =======
-                            f.write('{},{},{},{}\n'.format(epoch, 
+                            f.write('{},{},{},{}\n'.format(epoch,
 >>>>>>> master
                                                         batch_idx,
                                                         output_sequence(batch_Y),

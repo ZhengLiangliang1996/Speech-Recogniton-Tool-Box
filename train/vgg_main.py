@@ -120,7 +120,7 @@ class SessionRun(object):
 
         for i in dev_data:
             max_sequence_length = max(max_sequence_length, i.shape[1])
-        max_sequence_length = 1000
+        max_sequence_length =900
         # Checkpointer
         checkpointer = ModelCheckpoint(filepath=savedir+'/'+args.model_name, verbose=1)
         # Training Phase

@@ -58,9 +58,9 @@ parser.add_argument('--data_dir', type=str, default=dir_all, help='Data director
 parser.add_argument('--tensorboard_log_dir', type=str, default= '../TENSORBOARD_LOG', help='TENSORBOARD_LOG directory')
 parser.add_argument('--checkpoint_dir', type=str, default= '../CHECKPOINT')
 # loss pickle name
-parser.add_argument('--pickle_name', type=str, default='cnn2layer.pickle', help='name of the loss to be saved, extension is .pickle')
+parser.add_argument('--pickle_name', type=str, default='morecnn2layer.pickle', help='name of the loss to be saved, extension is .pickle')
 # model save name
-parser.add_argument('--model_name', type=str, default='cnn2layer.h5', help='name of the model(hdf5) to be saved, extension is h5')
+parser.add_argument('--model_name', type=str, default='morecnn2layer.h5', help='name of the model(hdf5) to be saved, extension is h5')
 # Feature level
 parser.add_argument('--level', type=str, default='char', help='the feature level, could be cha, phn or seq2seq')
 
@@ -120,7 +120,9 @@ class SessionRun(object):
 
         for i in dev_data:
             max_sequence_length = max(max_sequence_length, i.shape[1])
+
         max_sequence_length = 900
+
         # Checkpointer
         checkpointer = ModelCheckpoint(filepath=savedir+'/'+args.model_name, verbose=1)
         # Training Phase
