@@ -22,7 +22,7 @@ plt.show()
 
 
 # MFCC spectrogram
-y, sr = librosa.load('babibu_1.wav')
+y, sr = librosa.load('gubadu_1.wav')
 D = np.abs(librosa.stft(y))**2
 S = librosa.feature.melspectrogram(S=D, sr=sr,fmax=8000,n_mels=128)
 
@@ -30,6 +30,6 @@ plt.figure(figsize=(10, 4))
 S_dB = librosa.power_to_db(S, ref=np.max)
 display.specshow(S_dB, x_axis='time',y_axis='mel', sr=sr,fmax=8000)
 plt.colorbar(format='%+2.0f dB')
-plt.title('Mel-frequency spectrogram for speech signal babibu')
+plt.title('Mel-frequency spectrogram for speech signal gubadu')
 plt.tight_layout()
 plt.show()

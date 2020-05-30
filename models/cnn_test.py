@@ -91,9 +91,9 @@ class CNN(object):
         self.h4 = cnn_cell(128, self.h3, pool=False)
         self.h5 = cnn_cell(128, self.h4, pool=False)
         # 39 / 8 * 256 = 3200
-        self.h6 = Reshape((-1, 512))(self.h5)
-        self.h6 = Dropout(0.2)(self.h6)
-        #self.h66 = dense(512)(self.h6)
+        self.h6 = Reshape((-1, 512))(self.h3)
+        #self.h6 = Dropout(0.2)(self.h6)
+        self.h66 = dense(512)(self.h6)
         self.h7 = dense(256)(self.h6)
         self.h7 = Dropout(0.2)(self.h7)
         self.outputs = dense(args.num_classes, activation='softmax')(self.h7)

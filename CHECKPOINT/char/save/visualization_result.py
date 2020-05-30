@@ -15,12 +15,23 @@ sns.set_style(style='white')
 
 
 def draw_loss():
-    all_pickles_1 = sorted(glob("768_unit_2_layer_BIGRU.pickle"))
-    all_pickles_2 = sorted(glob("768_unit_2_layer_lstm_forget.pickle"))
-    all_pickles = np.concatenate((all_pickles_1, all_pickles_2))
+    all_pickles_1 = sorted(glob("768_unit_2_layer_GRU.pickle"))
+    all_pickles_2 = sorted(glob("768_unit_2_layer_LSTM.pickle"))
+    all_pickles_3 = sorted(glob("test_768_unit_2_layer_GRU.pickle"))
+    all_pickles_4 = sorted(glob("test_768_unit_2_layer_LSTM.pickle"))
+    #all_pickles_5 = sorted(glob("768_unit_2_layer_BILSTM.pickle"))
+    #all_pickles_6 = sorted(glob("768_unit_4_layer_BILSTM.pickle"))
+    # all_pickles_7 = sorted(glob("768_unit_2_layer_lstm_forget.pickle"))
+    all_pickles = np.concatenate((all_pickles_1, all_pickles_2, all_pickles_3, all_pickles_4,
+                                 ))
+
+
+    #all_pickles = np.concatenate((all_pickles_1, all_pickles_2))
 
     # Extract the name of each model
     model_names = ['encoded_2_'+item[5:-7] if 'test' in item else 'encoded_1_'+item[:-7] for item in all_pickles]
+    #model_names = [''+item[5:-7] if 'test' in item else ''+item[:-7] for item in all_pickles]
+
     print(model_names)
     # Extract the loss history for each model
     valid_loss = [pickle.load(open(i, "rb"))['val_loss'] for i in all_pickles]
@@ -35,17 +46,17 @@ def draw_loss():
 
     # Plot the training loss vs. epoch for each model
     ax1 = fig.add_subplot(111)
-
+    colorlist = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b', '#e377c2']
     for i in range(len(all_pickles)):
         ax1.plot(np.linspace(1, num_epochs[i], num_epochs[i]),
-                 train_loss[i], label=model_names[i])
+                 train_loss[i],label=model_names[i])
         # Clean up the plot
         leg1 = ax1.legend()
         leg1.get_frame().set_edgecolor('black')
         ax1.set_xlim([1, max(num_epochs)])
-        # ax1.set_yscale('log')
+        ax1.set_yscale('log')
         plt.xlabel('Epoch')
-        plt.ylabel('Training CTC Loss')
+        plt.ylabel('Training CTC Loss(log scale)')
 
         # Plot the validation loss vs. epoch for each model
     fig = plt.figure(figsize=(4, 3))
@@ -57,10 +68,10 @@ def draw_loss():
     leg = ax2.legend()
     leg.get_frame().set_edgecolor('black')
     ax2.set_xlim([1, max(num_epochs)])
-    # ax2.set_yscale('log')
+    ax2.set_yscale('log')
     plt.xlabel('Epoch')
     # plt.tight_layout()
-    plt.ylabel('Validation CTC Loss')
+    plt.ylabel('Validation CTC Loss(log scale)')
     plt.show()
 
 

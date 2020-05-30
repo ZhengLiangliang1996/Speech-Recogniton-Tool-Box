@@ -57,7 +57,10 @@ def show_scatter_density(data, units):
         z = gaussian_kde(data[:, i])(data[:, i])
         x = [i+1] * data.shape[0]
         a = ax.scatter(x, data[:, i], c=z, s=100, edgecolor='')
-    # plt.colorbar(a)
+
+    plt.colorbar(a)
+    plt.xlabel('Selected units')
+    plt.ylabel('Activation')
     plt.show()
 
 def show_box_plot(data, units):

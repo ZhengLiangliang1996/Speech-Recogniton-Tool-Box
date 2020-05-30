@@ -175,12 +175,12 @@ inputs, outputs,length = get_data()
 x = inputs['the_input']
 #print(x)
 
-model = make_model(length, model_path='../CHECKPOINT/char/save/768_unit_2_layer_LSTM.h5')
+model = make_model(length, model_path='../CHECKPOINT/char/save/768_unit_2_layer_BILSTM.h5')
 # draw the model archtecture graph
 # plot_model(model.model_2, to_file='model.png',show_shapes=True)
 
 # get_layer_outputs(model.model_1, x, layer_name = 'batch_normalization_1')
-output_visualize(model.model_2, input_data = x, layer_name='softmax',
+output_visualize(model.model_2, input_data = x, layer_name='batch_normalization_1',
                  n_rows = 4, unit_choose = 32)
 #output_visualize(model.model_2, layer_name='gru1')
 # viz_outs_grads_last(model, 2)

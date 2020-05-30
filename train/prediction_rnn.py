@@ -16,7 +16,7 @@ sys.path.append('..')
 
 import numpy as np
 import tensorflow as tf
-from models.brnn_keras_new import brnn_keras
+from models.brnn_keras_prediction import brnn_keras
 from utils.data_helper_keras import data_specification, create_batch
 from utils.cha_level_helper import int_sequence_to_text,int_sequence_to_text_test
 import matplotlib.pyplot as plt
@@ -72,6 +72,7 @@ import tensorflow as tf
 import numpy as np
 from keras import backend as K
 
+from keras.models import load_model
 # CTC_decoder:
 def decode_ctc(args, num_result):
     result = num_result[:, :, :]
@@ -87,9 +88,21 @@ def decode_ctc(args, num_result):
         text.append(i)
     return text
 
+def forceAspect(ax,aspect=1):
+    im = ax.get_images()
+    extent =  im[0].get_extent()
+    ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
+
 def output_matrix(m):
+    #fig = plt.figure(1, figsize=(5,4))
+    #fig.tight_layout()
     plt.matshow(m.T)
-    plt.colorbar()
+    plt.ylabel('character')
+    plt.xlabel('time')
+
+    plt.ylabel('character')
+    plt.xlabel('time')
+    #plt.colorbar()
     plt.show()
 
 def prediction(args, number, data_dir='../samples/cha/stimuli3/0', model_path="", mode='train', data_suffix = 'npy'):
@@ -111,8 +124,10 @@ def prediction(args, number, data_dir='../samples/cha/stimuli3/0', model_path=""
 
     # Training Phase
     model = brnn_keras(args, max_sequence_length)
+    #model.summary()
+    model.model_1.load_weights(model_path)
 
-    model.model_2.load_weights(model_path)
+    #model.model_2.load_weights(model_path)
 
     batch = create_batch(args, data, max_sequence_length, label)
     for i in range(number):
@@ -144,11 +159,12 @@ def prediction(args, number, data_dir='../samples/cha/stimuli3/0', model_path=""
 
         output_matrix(prediction[0])
 def run_prediction(args, model_path):
-    all_models = sorted(glob(model_path+"test_768_*4*_LSTM.h5"))
+    all_models = sorted(glob(model_path+"test_768_unit_2_layer_LSTM.h5"))
 
     print(all_models)
     model_names = [item[:] for item in all_models]
-    data_dir='../samples/cha/stimuli3/0'
+    data_dir='./prediction_data/encode1'
+    #data_dir='../samples/cha/stimuli3/0'
     print(args)
     for i in model_names:
         print(i)
@@ -157,16 +173,16 @@ def run_prediction(args, model_path):
         if "4" in i:
             args.num_layers = 4
         if "test" in i:
-            data_dir = '../sample_test/cha/stimuli3/0'
-        if "wb" in i or "wbd" in i:
-            continue
+            data_dir = './prediction_data/encode2'
+        #if "wb" in i or "wbd" in i:
+        #    continue
         if "GRU" in i:
             args.rnn_celltype = 'gru'
         if "LSTM" in i:
             args.rnn_celltype = 'lstm'
 
         print(args)
-        prediction(args, number=2, data_dir=data_dir,
+        prediction(args, number=4, data_dir=data_dir,
                    model_path=i)
 
 

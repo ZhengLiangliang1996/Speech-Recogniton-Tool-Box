@@ -42,7 +42,7 @@ def create_batch(args, data, max_seq_length, label):
             # assign batch index to this batch
             batch_idx = rand_idx[start:end]
             # initialize the array
-            batch_data = np.zeros([args.batch_size, max_seq_length, args.num_features, 1])
+            batch_data = np.zeros([args.batch_size, max_seq_length, args.num_features])
             batch_label = np.ones([args.batch_size, max_seq_length])
 
             # input_length
@@ -57,7 +57,7 @@ def create_batch(args, data, max_seq_length, label):
                 # in my case, the input length is in the second shape 1
                 input_length[num_batch] = batched_data.shape[0]
                 # same here
-                batch_data[num_batch, 0:batched_data.shape[0],:, 0] = batched_data
+                batch_data[num_batch, 0:batched_data.shape[0],:] = batched_data
 
                 # batch label
                 batched_label = np.array(label[index])

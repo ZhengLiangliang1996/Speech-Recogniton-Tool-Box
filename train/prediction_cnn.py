@@ -145,16 +145,18 @@ def prediction(args, number, data_dir='../samples/cha/stimuli3/0', model_path=""
             print('Predicted speech:\n' + '\n' + ''.join(int_sequence_to_text_test(pred_ints)))
 
 
-        output_matrix(prediction[0])
+        #output_matrix(prediction[0])
 def run_prediction(args, model_path):
-    all_models = sorted(glob(model_path+"more_cnn_2_layer.h5"))
+    all_models = sorted(glob(model_path+"test_cnn_6_layer.h5"))
 
     print(all_models)
     model_names = [item[:] for item in all_models]
-    data_dir='../samples/cha/stimuli3/0'
+    data_dir='./prediction_data/encode1'
+    if 'test' in all_models:
+        data_dir = './prediction_data/encode2'
     print(args)
     for i in model_names:
-        prediction(args, number=2, data_dir=data_dir,
+        prediction(args, number=4, data_dir=data_dir,
                    model_path=i)
 
 
